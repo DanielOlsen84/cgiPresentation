@@ -1,0 +1,1500 @@
+if  glSceneViewer1.Camera = glcamera1 then
+     begin
+          if GetAsyncKeyState(VK_LBUTTON) <> 0 then
+          begin
+          SetVector(rayStart, glcamera1.AbsolutePosition);
+          SetVector(rayVector, GLSceneViewer1.Buffer.ScreenToVector(AffineVectorMake(mouse.CursorPos.X, GLSceneViewer1.Height-mouse.CursorPos.Y, 0)));
+          NormalizeVector(rayVector);
+
+             if CameraCube.DistanceTo(foreFireDirBtn) < 3 then
+             begin
+                 if (foreFireDirBtn.RayCastIntersect(rayStart, rayVector, @iPoint, @iNormal)) and (usingFireDirNr = 0) then
+                 begin
+                 //usingFireDirNr := 1;
+                 //cameraCube.TurnAngle := foreFireDirCube.TurnAngle;
+                 //cameraCube.AbsoluteDirection := foreFireDirCamPos1.AbsoluteDirection;
+                 stopMove := true;
+
+                     if fireDirSelDirBtnFore.Material.LibMaterialName = 'btnReady' then
+                     begin
+                     usingFireDirNr := 1;
+                     GLSceneViewer1.Camera := foreRFPrtCam;
+                     end;
+                     if fireDirSelDirBtntop.Material.LibMaterialName = 'btnReady' then
+                     begin
+                     usingFireDirNr := 2;
+                     GLSceneViewer1.Camera := topRFPrtCam;
+                     end;
+                     if fireDirSelDirBtnAft.Material.LibMaterialName = 'btnReady' then
+                     begin
+                     usingFireDirNr := 3;
+                     GLSceneViewer1.Camera := aftRFPrtCam;
+                     end;
+
+                 end;
+             end;
+
+             
+
+          end;
+     end;
+
+     //if GLSceneViewer1.Camera = foreRFPrtCam then
+     //begin
+     //usingFireDirNr := 1;
+     //end
+     //else
+     //begin
+     //     if GLSceneViewer1.Camera = topRFPrtCam then
+     //     begin
+     //     usingFireDirNr := 2;
+     //     end
+     //     else
+     //     begin
+     //          if GLSceneViewer1.Camera = aftRFPrtCam then
+     //          begin
+     //          usingFireDirNr := 3;
+     //          end
+     //          else
+     //          begin
+     //          usingFireDirNr := 0;
+     //          end;
+     //     end;
+     //end;
+
+     if (usingFireDirNr > 0) and (isKeyDown(VK_RBUTTON)) then
+     begin
+         if aimFireDirFirstClick = true then
+         begin
+         setcursorpos(round(GLSceneViewer1.width / 2), round(GLSceneViewer1.Height / 2));
+         aimFireDirFirstClick := false;
+         end
+         else
+         begin
+
+             case usingFireDirNr of
+             1: begin
+                grabFireDir := ForeRFCube;
+                grabFireDirCamCube := foreRFPrtCamCube;
+                end;
+             2: begin
+                grabFireDir := TopRFCube;
+                grabFireDirCamCube := TopRFPrtCamCube;
+                end;
+             3: begin
+                grabFireDir := AftRFCube;
+                grabFireDirCamCube := AftRFPrtCamCube;
+                end;
+             end;
+
+         xangle := mouse.CursorPos.X - GLSceneViewer1.Width/2;
+         yangle := mouse.CursorPos.Y - GLSceneViewer1.Height/2 +0.5;
+         setcursorpos(round(GLSceneViewer1.width / 2), round(GLSceneViewer1.Height / 2));
+
+            grabFireDir.TurnAngle := grabFireDir.TurnAngle - (xangle * deltaTime * 0.1);
+            if (grabFireDirCamCube.PitchAngle < 45) and (grabFireDirCamCube.PitchAngle > -45) then
+            begin
+            grabFireDirCamCube.pitchangle := grabFireDirCamCube.pitchangle + (-yangle * deltaTime * 0.1);
+            end
+            else
+            begin
+                 if (grabFireDirCamCube.PitchAngle > 45) then
+                 begin
+                 grabFireDirCamCube.PitchAngle := grabFireDirCamCube.PitchAngle - 1;
+                 end;
+                 if (grabFireDirCamCube.PitchAngle < -45) then
+                 begin
+                 grabFireDirCamCube.PitchAngle := grabFireDirCamCube.PitchAngle + 1;
+                 end;
+            end;
+
+             case usingFireDirNr of
+             1: foreRFStbCamCube.PitchAngle := grabFireDirCamCube.PitchAngle;
+             2: TopRFStbCamCube.PitchAngle := grabFireDirCamCube.PitchAngle;
+             3: AftRFStbCamCube.PitchAngle := grabFireDirCamCube.PitchAngle;
+             end;
+
+         foreFireDirCube.TurnAngle:=ForeRFCube.TurnAngle;
+         end;
+     end
+     else
+     begin
+     aimFireDirFirstClick := true;
+     end;
+
+ { if (ForeRFEnabled = true) and (usingFireDirNr > 0) then
+  begin
+        inc(RFFPS);
+
+        if RFFPS >= 0 then
+        begin
+        foreRFstbCamimage.Visible:=false;
+
+        foreRFmemView.Width := round(GLSceneViewer1.Width * 0.5);
+        foreRFmemView.Height := round(GLSceneViewer1.Height * 0.5);
+
+        fireDirHUDtex1.Visible:=false;
+
+        case usingFireDirNr of
+        1: foreRFmemView.Camera := foreRFstbCam;
+        2: foreRFmemView.Camera := TopRFstbCam;
+        3: foreRFmemView.Camera := AftRFstbCam;
+        end;
+
+        foreRFmemView.Render;
+        foreRFmemView.CopyToTexture(foreRFstbCamimage.Material.Texture);
+
+        foreRFstbCamimage.Visible:=true;
+
+        foreRFstbCamimage.Width:= GLSceneViewer1.Width;
+        foreRFstbCamimage.Height:= GLSceneViewer1.Height;
+        foreRFstbCamimage.Position.X := foreRFstbCamimage.Width * 0.5;
+        foreRFstbCamimage.Position.Y := foreRFstbCamimage.Height * 0.5;
+        //foreRFstbCamimage.Scale.X := foreRFstbCamimage.Scale.x * 0.25;
+        //foreRFstbCamimage.Scale.y := foreRFstbCamimage.Scale.y * 0.25;
+        RFFPS := 0;
+        end;
+  end
+  else
+  begin
+  foreRFstbCamimage.Visible:=false;
+  end; }
+
+  if (usingFireDirNr > 0) then
+  begin
+  mouselook:=false;
+
+  fireDirHUDtex1.Visible:=true;
+
+  fireDirHUDGunAHEcount.text := intToStr(MyShipGunAHEcount);
+  fireDirHUDGunBHEcount.text := intToStr(MyShipGunBHEcount);
+  fireDirHUDGunCHEcount.text := intToStr(MyShipGunCHEcount);
+
+   //FIREDIRHUD
+
+         if setupHUDResDone = false then
+         begin
+         HUDprocX := GLSceneViewer1.Width / 3840;
+         HUDprocY := GLSceneViewer1.Height / 2160;
+
+         fireDirHUDtex1.Width:= GLSceneViewer1.Width;
+         fireDirHUDtex1.Height:= GLSceneViewer1.Height;
+         fireDirHUDtex1.Position.X := fireDirHUDtex1.Width * 0.5;
+         fireDirHUDtex1.Position.Y := fireDirHUDtex1.Height * 0.5;
+
+         fireDirHudFireABtn.Width := round(159 * HUDprocX);
+         fireDirHudFireABtn.Height := round(147 * HUDprocY);
+         fireDirHudFireBBtn.Width := fireDirHudFireABtn.Width;
+         fireDirHudFireBBtn.Height := fireDirHudFireABtn.Height;
+         fireDirHudFireCBtn.Width := fireDirHudFireABtn.Width;
+         fireDirHudFireCBtn.Height := fireDirHudFireABtn.Height;
+
+         fireDirHudFireABtn.Position.X := round(GLSceneViewer1.Width * (1656.3 / 1920));
+         fireDirHudFireABtn.Position.Y := round(GLSceneViewer1.height * (333.3 / 1080));
+         fireDirHudFireBBtn.Position.X := round(GLSceneViewer1.Width * (1656.3 / 1920));
+         fireDirHudFireBBtn.Position.Y := round(GLSceneViewer1.height * (648.96 / 1080));
+         fireDirHudFireCBtn.Position.X := round(GLSceneViewer1.Width * (1656.3 / 1920));
+         fireDirHudFireCBtn.Position.Y := round(GLSceneViewer1.height * (964.1 / 1080));
+
+         fireDirHudEnableAswitch.Width := round(125 * HUDprocX);
+         fireDirHudEnableAswitch.Height := round(125 * HUDprocY);
+         fireDirHudEnableBswitch.Width := fireDirHudEnableAswitch.Width;
+         fireDirHudEnableBswitch.Height := fireDirHudEnableAswitch.Height;
+         fireDirHudEnableCswitch.Width := fireDirHudEnableAswitch.Width;
+         fireDirHudEnableCswitch.Height := fireDirHudEnableAswitch.Height;
+
+         fireDirHudEnableAswitch.Position.X := round(GLSceneViewer1.Width * (1805.6 / 1920));
+         fireDirHudEnableAswitch.Position.Y := round(GLSceneViewer1.height * (169.4 / 1080));
+         fireDirHudEnableBswitch.Position.X := round(GLSceneViewer1.Width * (1805.6 / 1920));
+         fireDirHudEnableBswitch.Position.Y := round(GLSceneViewer1.height * (489.6 / 1080));
+         fireDirHudEnableCswitch.Position.X := round(GLSceneViewer1.Width * (1805.6 / 1920));
+         fireDirHudEnableCswitch.Position.Y := round(GLSceneViewer1.height * (804.7 / 1080));
+
+         fireDir1HUDMagnifySwitch.Width := round(172 * HUDprocX);
+         fireDir1HUDMagnifySwitch.Height := round(137 * HUDprocY);
+         fireDir1HUDMagnifySwitch.Position.X := round(GLSceneViewer1.Width * (1448.6 / 1920));
+         fireDir1HUDMagnifySwitch.Position.Y := round(GLSceneViewer1.height * (251.7 / 1080));
+
+         fireDir1HUDRFswitch.Width := round(162 * 2 * HUDprocX);
+         fireDir1HUDRFswitch.Height := round(162 * 2 * HUDprocY);
+         fireDir1HUDRFswitch.Position.X := round(GLSceneViewer1.Width * (1275 / 1920));
+         fireDir1HUDRFswitch.Position.Y := round(GLSceneViewer1.height * (99.7 / 1080));
+
+         fireDir1HUDStabSwitch.Width := round(162 * 2 * HUDprocX);
+         fireDir1HUDStabSwitch.Height := round(162 * 2 * HUDprocY);
+         fireDir1HUDStabSwitch.Position.X := round(GLSceneViewer1.Width * (1451.4 / 1920));
+         fireDir1HUDStabSwitch.Position.Y := round(GLSceneViewer1.height * (99.7 / 1080));
+
+         fireDirHudNeedle1.Width := round(30 * HUDprocX);
+         fireDirHudNeedle1.Height := round(350 * HUDprocY);
+         fireDirHudNeedle1.Position.X := round(GLSceneViewer1.Width * (1179.5 / 1920));
+         fireDirHudNeedle1.Position.Y := round(GLSceneViewer1.height * (893 / 1080));
+         fireDirHudNeedle2.Width := round(30 * HUDprocX);
+         fireDirHudNeedle2.Height := round(350 * HUDprocY);
+         fireDirHudNeedle2.Position.X := round(GLSceneViewer1.Width * (1392.4 / 1920));
+         fireDirHudNeedle2.Position.Y := round(GLSceneViewer1.height * (893 / 1080));
+
+         fireDirHUDrangeText1.Position.X := round(GLSceneViewer1.Width * (1207.1 / 1920));
+         fireDirHUDrangeText1.Position.Y := round(GLSceneViewer1.height * (183.7 / 1080));
+
+         fireDirSelDirBtnFore.Width := round(2 * 31 * HUDprocX);
+         fireDirSelDirBtnFore.Height := round(2 * 31 * HUDprocY);
+         fireDirSelDirBtnFore.Position.X := round(GLSceneViewer1.Width * (1772.9 / 1920));
+         fireDirSelDirBtnFore.Position.Y := round(GLSceneViewer1.height * (75.3 / 1080));
+
+         fireDirSelDirBtnTop.Width := round(2 * 31 * HUDprocX);
+         fireDirSelDirBtnTop.Height := round(2 * 31 * HUDprocY);
+         fireDirSelDirBtnTop.Position.X := round(GLSceneViewer1.Width * (1808 / 1920));
+         fireDirSelDirBtnTop.Position.Y := round(GLSceneViewer1.height * (75.3 / 1080));
+
+         fireDirSelDirBtnAft.Width := round(2 * 31 * HUDprocX);
+         fireDirSelDirBtnAft.Height := round(2 * 31 * HUDprocY);
+         fireDirSelDirBtnAft.Position.X := round(GLSceneViewer1.Width * (1842 / 1920));
+         fireDirSelDirBtnAft.Position.Y := round(GLSceneViewer1.height * (75.3 / 1080));
+
+         fireDirGunAangleindicator.Width := round(2 * 16 * HUDprocX);
+         fireDirGunAangleindicator.Height := round(2 * 152 * HUDprocY);
+         fireDirGunAangleindicator.Position.X := round(GLSceneViewer1.Width * (1654.5 / 1920));
+         fireDirGunAangleindicator.Position.Y := round(GLSceneViewer1.height * (200.7 / 1080));
+
+         fireDirGunBangleindicator.Width := round(2 * 16 * HUDprocX);
+         fireDirGunBangleindicator.Height := round(2 * 152 * HUDprocY);
+         fireDirGunBangleindicator.Position.X := round(GLSceneViewer1.Width * (1654.5 / 1920));
+         fireDirGunBangleindicator.Position.Y := round(GLSceneViewer1.height * (515.7 / 1080));
+
+         fireDirGunCangleindicator.Width := round(2 * 16 * HUDprocX);
+         fireDirGunCangleindicator.Height := round(2 * 152 * HUDprocY);
+         fireDirGunCangleindicator.Position.X := round(GLSceneViewer1.Width * (1654.5 / 1920));
+         fireDirGunCangleindicator.Position.Y := round(GLSceneViewer1.height * (833.3 / 1080));
+
+         fireDirGunADirSlave.Width := round(2 * 60 * HUDprocX);
+         fireDirGunADirSlave.Height := round(2 * 50 * HUDprocY);
+         fireDirGunADirSlave.Position.X := round(GLSceneViewer1.Width * (1803.3 / 1920));
+         fireDirGunADirSlave.Position.Y := round(GLSceneViewer1.height * (253 / 1080));
+
+         fireDirGunBDirSlave.Width := round(2 * 60 * HUDprocX);
+         fireDirGunBDirSlave.Height := round(2 * 50 * HUDprocY);
+         fireDirGunBDirSlave.Position.X := round(GLSceneViewer1.Width * (1803.3 / 1920));
+         fireDirGunBDirSlave.Position.Y := round(GLSceneViewer1.height * (575.7 / 1080));
+
+         fireDirGunCDirSlave.Width := round(2 * 60 * HUDprocX);
+         fireDirGunCDirSlave.Height := round(2 * 50 * HUDprocY);
+         fireDirGunCDirSlave.Position.X := round(GLSceneViewer1.Width * (1803.3 / 1920));
+         fireDirGunCDirSlave.Position.Y := round(GLSceneViewer1.height * (888.3 / 1080));
+
+         fireDirHUDrangeText1.Position.X := round(GLSceneViewer1.Width * (1207.1 / 1920));
+         fireDirHUDrangeText1.Position.Y := round(GLSceneViewer1.height * (183.7 / 1080));
+
+         fireDirHUDGunAHEcount.Position.X := round(GLSceneViewer1.Width * (1729.1 / 1920));
+         fireDirHUDGunAHEcount.Position.Y := round(GLSceneViewer1.height * (336.4 / 1080));
+
+         fireDirHUDGunAAPcount.Position.X := round(GLSceneViewer1.Width * (1802.4 / 1920));
+         fireDirHUDGunAAPcount.Position.Y := round(GLSceneViewer1.height * (336.4 / 1080));
+
+         fireDirHUDGunBHEcount.Position.X := round(GLSceneViewer1.Width * (1729.1 / 1920));
+         fireDirHUDGunBHEcount.Position.Y := round(GLSceneViewer1.height * (657.6 / 1080));
+
+         fireDirHUDGunBAPcount.Position.X := round(GLSceneViewer1.Width * (1802.4 / 1920));
+         fireDirHUDGunBAPcount.Position.Y := round(GLSceneViewer1.height * (657.6 / 1080));
+
+         fireDirHUDGunCHEcount.Position.X := round(GLSceneViewer1.Width * (1729.1 / 1920));
+         fireDirHUDGunCHEcount.Position.Y := round(GLSceneViewer1.height * (970.1 / 1080));
+
+         fireDirHUDGunCAPcount.Position.X := round(GLSceneViewer1.Width * (1802.4 / 1920));
+         fireDirHUDGunCAPcount.Position.Y := round(GLSceneViewer1.height * (970.1 / 1080));
+
+         //Radar stuff
+         FCCHudRadar1.Width := round(2 * 365 * HUDprocX);
+         FCCHudRadar1.Height := round(2 * 365 * HUDprocY);
+         FCCHudRadar1.Position.X := round(GLSceneViewer1.Width * (182.7 / 1920));
+         FCCHudRadar1.Position.Y := round(GLSceneViewer1.height * (183.9 / 1080));
+
+         fccRadarSwitchON.Width := round(2 * 35 * HUDprocX);
+         fccRadarSwitchON.Height := round(2 * 35 * HUDprocY);
+         fccRadarSwitchON.Position.X := round(GLSceneViewer1.Width * (307.6 / 1920));
+         fccRadarSwitchON.Position.Y := round(GLSceneViewer1.height * (331.5 / 1080));
+
+         fccRadarknob1.Width := round(2 * 62 * HUDprocX);
+         fccRadarknob1.Height := round(2 * 62 * HUDprocY);
+         fccRadarknob1.Position.X := round(GLSceneViewer1.Width * (45.7 / 1920));
+         fccRadarknob1.Position.Y := round(GLSceneViewer1.height * (318.6 / 1080));
+
+         //FCC stuff
+         fireDirHUDFCCOwnCompass.Width := round(2 * 284 * HUDprocX);
+         fireDirHUDFCCOwnCompass.Height := round(2 * 284 * HUDprocY);
+         fireDirHUDFCCOwnCompass.Position.X := round(GLSceneViewer1.Width * (197.4 / 1920));
+         fireDirHUDFCCOwnCompass.Position.Y := round(GLSceneViewer1.height * (865 / 1080));
+
+         fireDirHudFCCOwnHead.Width := round(2 * 220 * HUDprocX);
+         fireDirHudFCCOwnHead.Height := round(2 * 220 * HUDprocY);
+         fireDirHudFCCOwnHead.Position.X := round(GLSceneViewer1.Width * (197.4 / 1920));
+         fireDirHudFCCOwnHead.Position.Y := round(GLSceneViewer1.height * (865 / 1080));
+
+         fireDirHUDFCCTargCompass.Width := round(2 * 284 * HUDprocX);
+         fireDirHUDFCCTargCompass.Height := round(2 * 284 * HUDprocY);
+         fireDirHUDFCCTargCompass.Position.X := round(GLSceneViewer1.Width * (197.4 / 1920));
+         fireDirHUDFCCTargCompass.Position.Y := round(GLSceneViewer1.height * (547.8 / 1080));
+
+         fireDirHudFCCtargetHead.Width := round(2 * 220 * HUDprocX);
+         fireDirHudFCCtargetHead.Height := round(2 * 220 * HUDprocY);
+         fireDirHudFCCtargetHead.Position.X := round(GLSceneViewer1.Width * (197.4 / 1920));
+         fireDirHudFCCtargetHead.Position.Y := round(GLSceneViewer1.height * (547.8 / 1080));
+
+         fireDirHudFCCtargetDistNeedle2.Width := round(2 * 8 * HUDprocX);
+         fireDirHudFCCtargetDistNeedle2.Height := round(2 * 94 * HUDprocY);
+         fireDirHudFCCtargetDistNeedle2.Position.X := round(GLSceneViewer1.Width * (711 / 1920));
+         fireDirHudFCCtargetDistNeedle2.Position.Y := round(GLSceneViewer1.height * (906.24 / 1080));
+
+         fireDirHudFCCtargetDistNeedle1.Width := round(2 * 17 * HUDprocX);
+         fireDirHudFCCtargetDistNeedle1.Height := round(2 * 140 * HUDprocY);
+         fireDirHudFCCtargetDistNeedle1.Position.X := round(GLSceneViewer1.Width * (711 / 1920));
+         fireDirHudFCCtargetDistNeedle1.Position.Y := round(GLSceneViewer1.height * (906.24 / 1080));
+
+         fireDirHudFCCtargetSpeedNeedle1.Width := round(2 * 17 * HUDprocX);
+         fireDirHudFCCtargetSpeedNeedle1.Height := round(2 * 140 * HUDprocY);
+         fireDirHudFCCtargetSpeedNeedle1.Position.X := round(GLSceneViewer1.Width * (522 / 1920));
+         fireDirHudFCCtargetSpeedNeedle1.Position.Y := round(GLSceneViewer1.height * (906.24 / 1080));
+
+         fccDirHudFCCtargSpeedKnob.Width := round(2 * 54 * HUDprocX);
+         fccDirHudFCCtargSpeedKnob.Height := round(2 * 54 * HUDprocY);
+         fccDirHudFCCtargSpeedKnob.Position.X := round(GLSceneViewer1.Width * (413.3 / 1920));
+         fccDirHudFCCtargSpeedKnob.Position.Y := round(GLSceneViewer1.height * (954.2 / 1080));
+
+         fccDirHudFCCtargSpeedSwitch.Width := round(2 * 19.5 * HUDprocX);
+         fccDirHudFCCtargSpeedSwitch.Height := round(2 * 93 * HUDprocY);
+         fccDirHudFCCtargSpeedSwitch.Position.X := round(GLSceneViewer1.Width * (618 / 1920));
+         fccDirHudFCCtargSpeedSwitch.Position.Y := round(GLSceneViewer1.height * (378 / 1080));
+
+         fccDirHudFCCtargHeadKnob.Width := round(2 * 65 * HUDprocX);
+         fccDirHudFCCtargHeadKnob.Height := round(2 * 65 * HUDprocY);
+         fccDirHudFCCtargHeadKnob.Position.X := round(GLSceneViewer1.Width * (314.7 / 1920));
+         fccDirHudFCCtargHeadKnob.Position.Y := round(GLSceneViewer1.height * (697.5 / 1080));
+
+         fccDirHudFCCtargDistSwitch.Width := round(2 * 19.5 * HUDprocX);
+         fccDirHudFCCtargDistSwitch.Height := round(2 * 93 * HUDprocY);
+         fccDirHudFCCtargDistSwitch.Position.X := round(GLSceneViewer1.Width * (23 / 1920));
+         fccDirHudFCCtargDistSwitch.Position.Y := round(GLSceneViewer1.height * (378 / 1080));
+
+         fccDirHudFCCtargHeadSwitch.Width := round(2 * 19 * HUDprocX);
+         fccDirHudFCCtargHeadSwitch.Height := round(2 * 93 * HUDprocY);
+         fccDirHudFCCtargHeadSwitch.Position.X := round(GLSceneViewer1.Width * (618 / 1920));
+         fccDirHudFCCtargHeadSwitch.Position.Y := round(GLSceneViewer1.height * (702 / 1080));
+
+         setupHUDResDone := true;
+         end;
+  //fireDirHUDtex1.Width:= GLSceneViewer1.Width;
+  //fireDirHUDtex1.Height:= GLSceneViewer1.Height;
+  //fireDirHUDtex1.Position.X := fireDirHUDtex1.Width * 0.5;
+  //fireDirHUDtex1.Position.Y := fireDirHUDtex1.Height * 0.5;
+
+  fireDirGunAangleindicator.Rotation := maingunAcube.TurnAngle;
+  fireDirGunBangleindicator.Rotation := maingunBcube.TurnAngle;
+  fireDirGunCangleindicator.Rotation := maingunCcube.TurnAngle;
+
+  fireDirHudFCCOwnHead.Rotation := -1 * fireDirHudNeedle1.Rotation;
+  fireDirHUDFCCOwnCompass.rotation := fireDirHudFCCOwnHead.Rotation - (myShip.TurnAngle - 180 mod 360); //Switch from Cone1.RollAngle
+  fireDirHUDFCCTargCompass.Rotation := fireDirHUDFCCOwnCompass.rotation;
+  //fireDirHudFCCOwnHead.Rotation := cone1.RollAngle - 180 mod 360;
+
+  case usingFireDirNr of
+     1: begin
+        //fireDirSelDirKnob.Material.LibMaterialName := 'knob1up';
+        fireDirHUDrangeText1.Text := inttostr(round(myship.DistanceTo(rf1targ)/4));
+
+        fireDirHudNeedle1.Rotation := ForeRFCube.TurnAngle;
+        fireDirHudNeedle2.Rotation := 360 * frac(ForeRFCube.TurnAngle * 0.1);
+
+
+        end;
+     2: begin
+        //fireDirSelDirKnob.Material.LibMaterialName := 'knob1right';
+        fireDirHUDrangeText1.Text := inttostr(round(myship.DistanceTo(rf2targ)/4));
+
+        fireDirHudNeedle1.Rotation := TopRFCube.TurnAngle;
+        fireDirHudNeedle2.Rotation := 360 * frac(TopRFCube.TurnAngle * 0.1);
+
+        end;
+     3: begin
+        //fireDirSelDirKnob.Material.LibMaterialName := 'knob1down';
+        fireDirHUDrangeText1.Text := inttostr(round(myship.DistanceTo(rf3targ)/4));
+
+        fireDirHudNeedle1.Rotation := AftRFCube.TurnAngle;
+        fireDirHudNeedle2.Rotation := 360 * frac(AftRFCube.TurnAngle * 0.1);
+
+        end;
+     end;
+
+        if strToInt(fireDirHUDrangeText1.Text) < 1000 then
+        fireDirHUDrangeText1.Text := '00' + (fireDirHUDrangeText1.Text);
+        if (strToInt(fireDirHUDrangeText1.Text) < 10000) and (strToInt(fireDirHUDrangeText1.Text) > 999) then
+        fireDirHUDrangeText1.Text := '0' + (fireDirHUDrangeText1.Text);
+
+     fireDirHudFCCtargetDistNeedle1.Rotation := 360 - 360 * (strToInt(fireDirHUDrangeText1.Text) / 60000);
+     fireDirHudFCCtargetDistNeedle2.Rotation := 360 - 360 * frac(strToInt(fireDirHUDrangeText1.Text) * 0.001);
+
+      if (isKeyDown(VK_Q)) then
+      begin
+            if FireMainGunA.Enabled = true then
+            begin
+            FireMainGunA.Click;
+            countFlightTime := true;
+            roundFlightTimer := 0;
+            end;
+      end;
+      if (isKeyDown(VK_W)) then
+      begin
+
+            if FireMainGunB.Enabled = true then
+            begin
+            FireMainGunB.Click;
+            end;
+      end;
+      if (isKeyDown(VK_E)) then
+      begin
+
+            if FireMainGunC.Enabled = true then
+            begin
+            FireMainGunC.Click;
+            end;
+      end;
+
+      if GetAsyncKeyState(VK_LBUTTON) <> 0 then
+      begin
+          if (isHit(fireDir1HUDRFswitch, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+               if fireDir1HUDRFswitch.Material.LibMaterialName = 'fireDirSwitch1Off' then
+               begin
+               ForeRFEnabled := true;
+               fireDir1HUDRFswitch.Material.LibMaterialName := 'fireDirSwitch1On';
+
+               end
+               else
+               begin
+               ForeRFEnabled := false;
+
+               fireDir1HUDRFswitch.Material.LibMaterialName := 'fireDirSwitch1Off';
+               end;
+          end;
+
+          if (isHit(fireDir1HUDStabswitch, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+               if fireDir1HUDStabswitch.Material.LibMaterialName = 'fireDirSwitch1Off' then
+               begin
+               RFStabCB.Checked := true;
+
+               fireDir1HUDStabswitch.Material.LibMaterialName := 'fireDirSwitch1On';
+               end
+               else
+               begin
+               RFStabCB.Checked := false;
+
+               fireDir1HUDStabswitch.Material.LibMaterialName := 'fireDirSwitch1Off';
+               end;
+          end;
+
+          if (isHit(fireDir1HUDMagnifySwitch, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+
+               if foreRFPrtCam.SceneScale = 1 then
+               begin
+               foreRFPrtCam.SceneScale := 12;
+               topRFPrtCam.SceneScale := 12;
+               aftRFPrtCam.SceneScale := 12;
+               foreRFPrtCam.nearPlaneBias := 200;
+               topRFPrtCam.nearPlaneBias := 200;
+               aftRFPrtCam.nearPlaneBias := 200;
+               //foreRFPrtCam.FocalLength := 1200;
+               //topRFPrtCam.FocalLength := 1200;
+               //aftRFPrtCam.FocalLength := 1200;
+               fireDir1HUDMagnifySwitch.material.LibMaterialName := 'knob1right';
+               BCOceanObject.uScale := 0.008;
+               end
+               else
+               begin
+                    if foreRFPrtCam.SceneScale = 36 then
+                    begin
+                    foreRFPrtCam.SceneScale := 1;
+                    topRFPrtCam.SceneScale := 1;
+                    aftRFPrtCam.SceneScale := 1;
+                    foreRFPrtCam.nearPlaneBias := 10;
+                    topRFPrtCam.nearPlaneBias := 10;
+                    aftRFPrtCam.nearPlaneBias := 10;
+
+                    fireDir1HUDMagnifySwitch.material.LibMaterialName := 'knob1up';
+
+                    BCOceanObject.uScale := 0.04;
+                    //foreRFPrtCam.FocalLength := 120;
+                    //topRFPrtCam.FocalLength := 120;
+                    //aftRFPrtCam.FocalLength := 120;
+                    end
+                    else
+                    begin
+                    foreRFPrtCam.SceneScale := 36;
+                    topRFPrtCam.SceneScale := 36;
+                    aftRFPrtCam.SceneScale := 36;
+                    foreRFPrtCam.nearPlaneBias := 500;
+                    topRFPrtCam.nearPlaneBias := 500;
+                    aftRFPrtCam.nearPlaneBias := 500;
+                    //foreRFPrtCam.FocalLength := 3200;
+                    //topRFPrtCam.FocalLength := 3200;
+                    //aftRFPrtCam.FocalLength := 3200;
+
+                    fireDir1HUDMagnifySwitch.material.LibMaterialName := 'knob1down';
+
+                    BCOceanObject.uScale := 0.001;
+                    end;
+               end;
+          foreRFStbCam.SceneScale := foreRFprtCam.SceneScale * 0.5;
+          topRFStbCam.SceneScale := topRFprtCam.SceneScale * 0.5;
+          aftRFStbCam.SceneScale := aftRFprtCam.SceneScale * 0.5;
+          foreRFStbCam.nearPlaneBias := foreRFPrtCam.nearPlaneBias;
+          topRFStbCam.nearPlaneBias := topRFPrtCam.nearPlaneBias;
+          aftRFStbCam.nearPlaneBias := aftRFPrtCam.nearPlaneBias;
+          end;
+
+          if (isHit(fireDirHudEnableAswitch, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+              if fireDirHudEnableAswitch.Material.LibMaterialName = 'flipSwitch1Down' then
+              fireDirHudEnableAswitch.Material.LibMaterialName:= 'flipSwitch1Up'
+              else
+              fireDirHudEnableAswitch.Material.LibMaterialName:= 'flipSwitch1Down';
+
+          GunAAutoUpCB.Checked := not GunAAutoUpCB.Checked;
+          fdHudBtnCoolTimer := 1;
+          end;
+          if (isHit(fireDirHudEnableBswitch, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+              if fireDirHudEnableBswitch.Material.LibMaterialName = 'flipSwitch1Down' then
+              fireDirHudEnableBswitch.Material.LibMaterialName:= 'flipSwitch1Up'
+              else
+              fireDirHudEnableBswitch.Material.LibMaterialName:= 'flipSwitch1Down';
+
+          GunBAutoUpCB.Checked := not GunBAutoUpCB.Checked;
+          fdHudBtnCoolTimer := 1;
+          end;
+          if (isHit(fireDirHudEnableCswitch, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+              if fireDirHudEnableCswitch.Material.LibMaterialName = 'flipSwitch1Down' then
+              fireDirHudEnableCswitch.Material.LibMaterialName:= 'flipSwitch1Up'
+              else
+              fireDirHudEnableCswitch.Material.LibMaterialName:= 'flipSwitch1Down';
+
+          GunCAutoUpCB.Checked := not GunCAutoUpCB.Checked;
+          fdHudBtnCoolTimer := 1;
+          end;
+
+          if (isHit(fireDirHudFireABtn, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+                if FireMainGunA.Enabled = true then
+                begin
+                FireMainGunA.Click;
+                countFlightTime := true;
+                roundFlightTimer := 0;
+                end;
+          end;
+          if (isHit(fireDirHudFireBBtn, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+                if FireMainGunB.Enabled = true then
+                begin
+                FireMainGunB.Click;
+                end;
+          end;
+          if (isHit(fireDirHudFireCBtn, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+                if FireMainGunC.Enabled = true then
+                begin
+                FireMainGunC.Click;
+                end;
+          end;
+
+          if (isHit(fireDirGunADirSlave, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+
+              if fireDirGunADirSlave.material.LibMaterialName = 'knob1right' then
+              begin
+              fireDirGunADirSlave.material.LibMaterialName := 'knob1down';
+              GunARFSlaveRg.ItemIndex:=2;
+              end
+              else
+              begin
+                   if fireDirGunADirSlave.material.LibMaterialName = 'knob1up' then
+                   begin
+                   fireDirGunADirSlave.material.LibMaterialName := 'knob1right';
+                   GunARFSlaveRg.ItemIndex:=1;
+                   end
+                   else
+                   begin
+                   fireDirGunADirSlave.material.LibMaterialName := 'knob1up';
+                   GunARFSlaveRg.ItemIndex:=0;
+                   end;
+              end;
+
+          end;
+
+          if (isHit(fireDirGunBDirSlave, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+
+              if fireDirGunBDirSlave.material.LibMaterialName = 'knob1right' then
+              begin
+              fireDirGunBDirSlave.material.LibMaterialName := 'knob1down';
+              GunBRFSlaveRg.ItemIndex:=2;
+              end
+              else
+              begin
+                   if fireDirGunBDirSlave.material.LibMaterialName = 'knob1up' then
+                   begin
+                   fireDirGunBDirSlave.material.LibMaterialName := 'knob1right';
+                   GunBRFSlaveRg.ItemIndex:=1;
+                   end
+                   else
+                   begin
+                   fireDirGunBDirSlave.material.LibMaterialName := 'knob1up';
+                   GunBRFSlaveRg.ItemIndex:=0;
+                   end;
+              end;
+
+          end;
+
+          if (isHit(fireDirGunCDirSlave, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+
+              if fireDirGunCDirSlave.material.LibMaterialName = 'knob1right' then
+              begin
+              fireDirGunCDirSlave.material.LibMaterialName := 'knob1down';
+              GunCRFSlaveRg.ItemIndex:=2;
+              end
+              else
+              begin
+                   if fireDirGunCDirSlave.material.LibMaterialName = 'knob1up' then
+                   begin
+                   fireDirGunCDirSlave.material.LibMaterialName := 'knob1right';
+                   GunCRFSlaveRg.ItemIndex:=1;
+                   end
+                   else
+                   begin
+                   fireDirGunCDirSlave.material.LibMaterialName := 'knob1up';
+                   GunCRFSlaveRg.ItemIndex:=0;
+                   end;
+              end;
+
+          end;
+
+          if (isHit(fireDirSelDirBtnFore, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+          usingFireDirNr:= 1;
+          GLSceneViewer1.Camera := foreRFPrtCam;
+
+          fireDirSelDirBtnFore.Material.LibMaterialName:= 'btnReady';
+          fireDirSelDirBtnTop.Material.LibMaterialName:= 'btnLoaded';
+          fireDirSelDirBtnAft.Material.LibMaterialName:= 'btnLoaded';
+
+          fireDirHudFCCtargetSpeedNeedle1.Rotation := 360 - 360 * (FCCForeTargetSpeedVar / 200);
+          fireDirHudFCCtargetHead.Rotation := fireDirHudFCCForeTargetHeadVar;
+          end;
+
+          if (isHit(fireDirSelDirBtnTop, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+          usingFireDirNr:= 2;
+          GLSceneViewer1.Camera := topRFPrtCam;
+
+          fireDirSelDirBtnFore.Material.LibMaterialName:= 'btnLoaded';
+          fireDirSelDirBtnTop.Material.LibMaterialName:= 'btnReady';
+          fireDirSelDirBtnAft.Material.LibMaterialName:= 'btnLoaded';
+
+          fireDirHudFCCtargetSpeedNeedle1.Rotation := 360 - 360 * (FCCTopTargetSpeedVar / 200);
+          fireDirHudFCCtargetHead.Rotation := fireDirHudFCCTopTargetHeadVar;
+          end;
+
+          if (isHit(fireDirSelDirBtnAft, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+          usingFireDirNr:= 3;
+          GLSceneViewer1.Camera := aftRFPrtCam;
+
+          fireDirSelDirBtnFore.Material.LibMaterialName:= 'btnLoaded';
+          fireDirSelDirBtnTop.Material.LibMaterialName:= 'btnLoaded';
+          fireDirSelDirBtnAft.Material.LibMaterialName:= 'btnReady';
+
+          fireDirHudFCCtargetSpeedNeedle1.Rotation := 360 - 360 * (FCCAftTargetSpeedVar / 200);
+          fireDirHudFCCtargetHead.Rotation := fireDirHudFCCAftTargetHeadVar;
+          end;
+
+          //if (isHit(fireDirSelDirKnob, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          //begin
+          //fdHudBtnCoolTimer := 1;
+          //
+          //      if fireDirSelDirKnob.Material.LibMaterialName = 'knob1right' then
+          //      begin
+          //      fireDirSelDirKnob.Material.LibMaterialName := 'knob1down';
+          //      usingFireDirNr:= 3;
+          //      GLSceneViewer1.Camera := aftRFPrtCam;
+          //      fireDirHudFCCtargetRing.Rotation := fireDirHudFCCOwnHead.Rotation + AftRFCube.Turnangle;
+          //      end
+          //      else
+          //      begin
+          //          if fireDirSelDirKnob.Material.LibMaterialName = 'knob1down' then
+          //          begin
+          //          fireDirSelDirKnob.Material.LibMaterialName := 'knob1up';
+          //          usingFireDirNr:= 1;
+          //          GLSceneViewer1.Camera := foreRFPrtCam;
+          //          fireDirHudFCCtargetRing.Rotation := fireDirHudFCCOwnHead.Rotation + ForeRFCube.Turnangle;
+          //          end
+          //          else
+          //          begin
+          //          fireDirSelDirKnob.Material.LibMaterialName := 'knob1right';
+          //          usingFireDirNr:= 2;
+          //          GLSceneViewer1.Camera := topRFPrtCam;
+          //          fireDirHudFCCtargetRing.Rotation := fireDirHudFCCOwnHead.Rotation + TopRFCube.Turnangle;
+          //          end;
+          //      end;
+          //end;
+
+          //if (isHit(fireDirHudFCCShow, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          //begin
+          //fdHudBtnCoolTimer := 1;
+          //fireDirHudFCC.Visible := not fireDirHudFCC.visible;
+          //end;
+
+          if (isHit(fccDirHudFCCtargSpeedSwitch, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+              if fccDirHudFCCtargSpeedSwitch.rotation = 0 then
+              fccDirHudFCCtargSpeedSwitch.rotation := 180
+              else
+              fccDirHudFCCtargSpeedSwitch.rotation := 0;
+          end;
+
+          if (isHit(fccDirHudFCCtargHeadSwitch, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+              if fccDirHudFCCtargHeadSwitch.rotation = 0 then
+              fccDirHudFCCtargHeadSwitch.rotation := 180
+              else
+              fccDirHudFCCtargHeadSwitch.rotation := 0;
+          end;
+
+          if (isHit(fccDirHudFCCtargDistSwitch, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fdHudBtnCoolTimer := 1;
+              if fccDirHudFCCtargDistSwitch.rotation = 0 then
+              fccDirHudFCCtargDistSwitch.rotation := 180
+              else
+              fccDirHudFCCtargDistSwitch.rotation := 0;
+          end;
+
+          //case usingFireDirNr of
+          //   1: tempIntX :=FCCForeTargetSpeedVar;
+          //   2: tempIntX :=FCCTopTargetSpeedVar;
+          //   3: tempIntX :=FCCAftTargetSpeedVar;
+          //end;
+
+          if (isHit(fccDirHudFCCtargSpeedKnob, mouse.CursorPos.X, mouse.CursorPos.y) = true) then
+          begin
+          mouseIsPulling := true;
+          mousePullPosX := round(fccDirHudFCCtargSpeedKnob.Position.X);
+          mousePullPosY := round(fccDirHudFCCtargSpeedKnob.Position.Y);
+          pulledHUDObject := fccDirHudFCCtargSpeedKnob;
+
+              //if (mouseMoveXPlus > 0) and (tempIntX > 0) then
+              //begin
+              //fccDirHudFCCtargSpeedKnob.Rotation := fccDirHudFCCtargSpeedKnob.Rotation + 5 * deltaTime * 30;
+              //tempIntX := tempIntX - round(1 * deltaTime * 30);
+              //end;
+              //if (mouseMoveXMinus > 0) and (tempIntX < 200) then
+              //begin
+              //fccDirHudFCCtargSpeedKnob.Rotation := fccDirHudFCCtargSpeedKnob.Rotation - 5 * deltaTime * 30;
+              //tempIntX := tempIntX + round(1 * deltaTime * 30);
+              //end;
+
+          //fireDirHudFCCtargetSpeedNeedle1.Rotation := 360 - 360 * (tempIntX / 200);
+          //
+          //case usingFireDirNr of
+          //   1: FCCForeTargetSpeedVar := tempIntX;
+          //   2: FCCTopTargetSpeedVar := tempIntX;
+          //   3: FCCAftTargetSpeedVar := tempIntX;
+          //end;
+          //
+          //mouseMoveXPlus := 0;
+          //mouseMoveXMinus := 0;
+          //SetCursorPos(round(fccDirHudFCCtargSpeedKnob.Position.X), round(fccDirHudFCCtargSpeedKnob.Position.Y));
+          //mouseMoveXOldPos := mouse.CursorPos.X;
+          end;
+
+          case usingFireDirNr of
+             1: tempSingX := fireDirHudFCCForeTargetHeadVar;
+             2: tempSingX := fireDirHudFCCTopTargetHeadVar;
+             3: tempSingX := fireDirHudFCCAftTargetHeadVar;
+          end;
+
+          if (isHit(fccDirHudFCCtargHeadKnob, mouse.CursorPos.X, mouse.CursorPos.y) = true) then
+          begin
+          mouseIsPulling := true;
+          mousePullPosX := round(fccDirHudFCCtargHeadKnob.Position.X);
+          mousePullPosY := round(fccDirHudFCCtargHeadKnob.Position.Y);
+          pulledHUDObject := fccDirHudFCCtargHeadKnob;
+
+          end;
+          //use cursor := crnone??
+          if (mouseIsPulling = true) and (pulledHUDObject = fccDirHudFCCtargHeadKnob) then
+          begin
+          dx:=mdx-mouse.CursorPos.X;
+              if (mouseMoveXPlus > 0) then
+              begin
+              fccDirHudFCCtargHeadKnob.Rotation := fccDirHudFCCtargHeadKnob.Rotation + 1 + (1 * dx * deltaTime * 30);
+              tempSingX := tempSingX + 1 + (1 * dx * deltaTime);
+              end;
+              if (mouseMoveXMinus > 0) then
+              begin
+              fccDirHudFCCtargHeadKnob.Rotation := fccDirHudFCCtargHeadKnob.Rotation - 1 + (1 * dx * deltaTime * 30);
+              tempSingX := tempSingX - 1 + (1 * dx * deltaTime);
+              end;
+
+          fireDirHudFCCtargetHead.Rotation := tempSingX;
+
+              case usingFireDirNr of
+                 1: fireDirHudFCCForeTargetHeadVar := tempSingX;
+                 2: fireDirHudFCCTopTargetHeadVar := tempSingX;
+                 3: fireDirHudFCCAftTargetHeadVar := tempSingX;
+              end;
+
+          mouseMoveXPlus := 0;
+          mouseMoveXMinus := 0;
+          SetCursorPos(round(fccDirHudFCCtargHeadKnob.Position.X), round(fccDirHudFCCtargHeadKnob.Position.Y));
+          mouseMoveXOldPos := mouse.CursorPos.X;
+          mdx := mouse.CursorPos.X;
+          end;
+
+          case usingFireDirNr of
+             1: tempIntX :=FCCForeTargetSpeedVar;
+             2: tempIntX :=FCCTopTargetSpeedVar;
+             3: tempIntX :=FCCAftTargetSpeedVar;
+          end;
+
+          if (mouseIsPulling = true) and (pulledHUDObject = fccDirHudFCCtargSpeedKnob) then
+          begin
+          dx:=mdx-mouse.CursorPos.X;
+              if (mouseMoveXPlus > 0) and (tempIntX > 0) then
+              begin
+              fccDirHudFCCtargSpeedKnob.Rotation := fccDirHudFCCtargSpeedKnob.Rotation + 1 + (1 * dx * deltaTime * 30);
+              tempIntX := tempIntX - round(1 * deltaTime * 30);
+              end;
+              if (mouseMoveXMinus > 0) and (tempIntX < 200) then
+              begin
+              fccDirHudFCCtargSpeedKnob.Rotation := fccDirHudFCCtargSpeedKnob.Rotation - 1 + (1 * dx * deltaTime * 30);
+              tempIntX := tempIntX + round(1 * deltaTime * 30);
+              end;
+
+          fireDirHudFCCtargetSpeedNeedle1.Rotation := 360 - 360 * (tempIntX / 200);
+
+                  case usingFireDirNr of
+                     1: FCCForeTargetSpeedVar := tempIntX;
+                     2: FCCTopTargetSpeedVar := tempIntX;
+                     3: FCCAftTargetSpeedVar := tempIntX;
+                  end;
+
+          mouseMoveXPlus := 0;
+          mouseMoveXMinus := 0;
+          SetCursorPos(round(fccDirHudFCCtargSpeedKnob.Position.X), round(fccDirHudFCCtargSpeedKnob.Position.Y));
+          mouseMoveXOldPos := mouse.CursorPos.X;
+          mdx := mouse.CursorPos.X;
+          end;
+
+
+
+
+          //if (isHit(fccDirHudFCCtargHeadKnob, mouse.CursorPos.X, mouse.CursorPos.y) = true) then
+          //begin
+          //
+          //    if (mouseMoveXPlus > 0) then
+          //    begin
+          //    fccDirHudFCCtargHeadKnob.Rotation := fccDirHudFCCtargHeadKnob.Rotation + 5 * deltaTime * 30;
+          //    tempSingX := tempSingX + round(2 * deltaTime * 30);
+          //    end;
+          //    if (mouseMoveXMinus > 0) then
+          //    begin
+          //    fccDirHudFCCtargHeadKnob.Rotation := fccDirHudFCCtargHeadKnob.Rotation - 5 * deltaTime * 30;
+          //    tempSingX := tempSingX - round(2 * deltaTime * 30);
+          //    end;
+          //
+          //fireDirHudFCCtargetHead.Rotation := tempSingX;
+          //
+          //    case usingFireDirNr of
+          //       1: fireDirHudFCCForeTargetHeadVar := tempSingX;
+          //       2: fireDirHudFCCTopTargetHeadVar := tempSingX;
+          //       3: fireDirHudFCCAftTargetHeadVar := tempSingX;
+          //    end;
+          //
+          //mouseMoveXPlus := 0;
+          //mouseMoveXMinus := 0;
+          //SetCursorPos(round(fccDirHudFCCtargHeadKnob.Position.X), round(fccDirHudFCCtargHeadKnob.Position.Y));
+          //mouseMoveXOldPos := mouse.CursorPos.X;
+          //
+          //mouseIsPulling := true;
+          //mousePullPosX := round(fccDirHudFCCtargHeadKnob.Position.X);
+          //mousePullPosY := round(fccDirHudFCCtargHeadKnob.Position.Y);
+          ////setcursorpos(round(fccDirHudFCCtargHeadKnob.position.x), round(fccDirHudFCCtargHeadKnob.position.y));
+          //end;
+
+      end;
+
+      if RFStabCB.Checked = true then
+      begin
+      foreRFPrtCamCube.Parent := foreRFStabHolder;
+      foreRFStbCamCube.Parent := foreRFStabHolder;
+      foreRFStabHolder.AbsolutePosition := ForeRFCube.AbsolutePosition;
+      foreRFStabHolder.TurnAngle := ForeRFCube.TurnAngle;
+
+      topRFPrtCamCube.Parent := topRFStabHolder;
+      topRFStbCamCube.Parent := topRFStabHolder;
+      topRFStabHolder.AbsolutePosition := topRFCube.AbsolutePosition;
+      topRFStabHolder.TurnAngle := topRFCube.TurnAngle;
+
+      aftRFPrtCamCube.Parent := aftRFStabHolder;
+      aftRFStbCamCube.Parent := aftRFStabHolder;
+      aftRFStabHolder.AbsolutePosition := aftRFCube.AbsolutePosition;
+      aftRFStabHolder.TurnAngle := aftRFCube.TurnAngle;
+
+                 //if fireDir1HUDStabSwitch.Rotation > -35 then
+                 //fireDir1HUDStabSwitch.Rotation := fireDir1HUDStabSwitch.Rotation - (3 * deltaTime * 60);
+      end
+      else
+      begin
+      foreRFPrtCamCube.Parent := ForeRFCube;
+      foreRFStbCamCube.Parent := ForeRFCube;
+      aftRFPrtCamCube.Parent := aftRFCube;
+      aftRFStbCamCube.Parent := aftRFCube;
+      topRFPrtCamCube.Parent := topRFCube;
+      topRFStbCamCube.Parent := topRFCube;
+           //if fireDir1HUDStabSwitch.Rotation < 35 then
+           //fireDir1HUDStabSwitch.Rotation := fireDir1HUDStabSwitch.Rotation + (3 * deltaTime * 60);
+      end;
+
+      if (IsKeyDown('d')) and (strtoint(fireDirHUDrangeText1.Text) < 40000) then
+      begin
+
+       case usingFireDirNr of
+       1: begin
+          if iskeydown(VK_SHIFT) then
+          begin
+          RF1Targ.Move(200);
+          end
+          else
+          begin
+          RF1Targ.Move(20);
+          end;
+         end;
+        2: begin
+          if iskeydown(VK_SHIFT) then
+          begin
+          RF2Targ.Move(200);
+          end
+          else
+          begin
+          RF2Targ.Move(20);
+          end;
+         end;
+        3: begin
+          if iskeydown(VK_SHIFT) then
+          begin
+          RF3Targ.Move(200);
+          end
+          else
+          begin
+          RF3Targ.Move(20);
+          end;
+         end;
+        end;
+      end;
+      if (IsKeyDown('a')) and (strtoint(fireDirHUDrangeText1.Text) > 500) then
+      begin
+        case usingFireDirNr of
+       1: begin
+          if iskeydown(VK_SHIFT) then
+          begin
+          RF1Targ.Move(-200);
+          end
+          else
+          begin
+          RF1Targ.Move(-20);
+          end;
+         end;
+        2: begin
+          if iskeydown(VK_SHIFT) then
+          begin
+          RF2Targ.Move(-200);
+          end
+          else
+          begin
+          RF2Targ.Move(-20);
+          end;
+         end;
+        3: begin
+          if iskeydown(VK_SHIFT) then
+          begin
+          RF3Targ.Move(-200);
+          end
+          else
+          begin
+          RF3Targ.Move(-20);
+          end;
+         end;
+        end;
+
+      end;
+
+  end
+  else
+  begin
+  fireDirHUDtex1.Visible:=false;
+  end;
+
+  if fdHudBtnCoolTimer > 0 then
+  fdHudBtnCoolTimer := fdHudBtnCoolTimer - (1 * deltaTime * 2);
+
+  if GunAAutoUpCB.Checked = true then
+  begin
+    case GunARFSlaveRg.ItemIndex of
+     0: begin
+
+           GunAWantedDistance := round(myship.DistanceTo(FCCForeTargetPlot)/4) + round(corrElev.Position / 10 * 1000);
+
+            if parCorrCB.Checked = true then
+            begin
+            Al1 := MainGunAPosHoriz.DistanceTo(rf1targ);
+            Bl1 := MainGunAPosHoriz.DistanceTo(ForeRFCube);
+            Cl1 := ForeRFCube.DistanceTo(rf1targ);
+            C1 := arcCos(((al1*al1)+(bl1*bl1)-(cl1*cl1))/(2*al1*bl1)) * 180 / pi;
+            //B1 := arcCos(((cl1*cl1)+(bl1*bl1)-(al1*al1))/(2*cl1*bl1)) * 180 / pi;
+
+                if ForeRFCube.TurnAngle < 0 then
+                GunAWantedTrain := C1 - 180
+                else
+                GunAWantedTrain := (C1 - 180) * -1;;
+
+            end
+            else
+            begin
+
+                GunAWantedTrain := radtodeg(arctan2(FCCForeTargetPlot.absolutePosition.Z - maingunAcube.absolutePosition.Z, FCCForeTargetPlot.absolutePosition.X - maingunAcube.absolutePosition.X));
+                GunAWantedTrain := GunAWantedTrain * -1 - 90 - MyShip.TurnAngle;
+                    if GunAWantedTrain < -180 then
+                    GunAWantedTrain := 360 - GunAWantedTrain * -1
+                    else
+                    GunAWantedTrain := GunAWantedTrain;
+
+            end;
+        GunAWantedElevation := 40 * (GunAWantedDistance /40000) + corrElev.Position / 10;
+
+        end;
+     1: begin
+
+
+             GunAWantedDistance := round(myship.DistanceTo(FCCTopTargetPlot)/4) + round(corrElev.Position / 10 * 1000);
+
+
+            if parCorrCB.Checked = true then
+            begin
+            Al1 := MainGunAPosHoriz.DistanceTo(rf2targ);
+            Bl1 := MainGunAPosHoriz.DistanceTo(TopRFCube);
+            Cl1 := TopRFCube.DistanceTo(rf2targ);
+            C1 := arcCos(((al1*al1)+(bl1*bl1)-(cl1*cl1))/(2*al1*bl1)) * 180 / pi;
+            //B1 := arcCos(((cl1*cl1)+(bl1*bl1)-(al1*al1))/(2*cl1*bl1)) * 180 / pi;
+                if TopRFCube.TurnAngle < 0 then
+                GunAWantedTrain := C1 - 180
+                else
+                GunAWantedTrain := (C1 - 180) * -1;
+
+            end
+            else
+            begin
+
+                GunAWantedTrain := radtodeg(arctan2(FCCTopTargetPlot.absolutePosition.Z - maingunAcube.absolutePosition.Z, FCCTopTargetPlot.absolutePosition.X - maingunAcube.absolutePosition.X));
+                GunAWantedTrain := GunAWantedTrain * -1 - 90 - MyShip.TurnAngle;
+
+                    if GunAWantedTrain < -180 then
+                    GunAWantedTrain := 360 - GunAWantedTrain * -1
+                    else
+                    GunAWantedTrain := GunAWantedTrain;
+
+
+            end;
+        GunAWantedElevation := 40 * (GunAWantedDistance /40000) + corrElev.Position / 10;
+
+        end;
+     2: begin
+
+             GunAWantedDistance := round(myship.DistanceTo(FCCAftTargetPlot)/4) + round(corrElev.Position / 10 * 1000);
+
+
+            if parCorrCB.Checked = true then
+            begin
+            Al1 := MainGunAPosHoriz.DistanceTo(rf3targ);
+            Bl1 := MainGunAPosHoriz.DistanceTo(AftRFCube);
+            Cl1 := AftRFCube.DistanceTo(rf3targ);
+            C1 := arcCos(((al1*al1)+(bl1*bl1)-(cl1*cl1))/(2*al1*bl1)) * 180 / pi;
+            //B1 := arcCos(((cl1*cl1)+(bl1*bl1)-(al1*al1))/(2*cl1*bl1)) * 180 / pi;
+                if AftRFCube.TurnAngle < 0 then
+                GunAWantedTrain := C1 - 180
+                else
+                GunAWantedTrain := (C1 - 180) * -1;
+            end
+            else
+            begin
+
+                GunAWantedTrain := radtodeg(arctan2(FCCAftTargetPlot.absolutePosition.Z - maingunAcube.absolutePosition.Z, FCCAftTargetPlot.absolutePosition.X - maingunAcube.absolutePosition.X));
+                GunAWantedTrain := GunAWantedTrain * -1 - 90 - MyShip.TurnAngle;
+                    if GunAWantedTrain < -180 then
+                    GunAWantedTrain := 360 - GunAWantedTrain * -1
+                    else
+                    GunAWantedTrain := GunAWantedTrain;
+
+            end;
+        GunAWantedElevation := 40 * (GunAWantedDistance /40000) + corrElev.Position / 10;
+
+
+     end;
+   end;
+  end;
+  if GunBAutoUpCB.Checked = true then
+  begin
+      case GunBRFSlaveRg.ItemIndex of
+     0: begin
+
+           GunBWantedDistance := round(myship.DistanceTo(FCCForeTargetPlot)/4) + round(corrElev.Position / 10 * 1000);
+
+
+            if parCorrCB.Checked = true then
+            begin
+            Al1 := MainGunBPosHoriz.DistanceTo(rf1targ);
+            Bl1 := MainGunBPosHoriz.DistanceTo(ForeRFCube);
+            Cl1 := ForeRFCube.DistanceTo(rf1targ);
+            C1 := arcCos(((al1*al1)+(bl1*bl1)-(cl1*cl1))/(2*al1*bl1)) * 180 / pi;
+            //B1 := arcCos(((cl1*cl1)+(bl1*bl1)-(al1*al1))/(2*cl1*bl1)) * 180 / pi;
+                if ForeRFCube.TurnAngle < 0 then
+                GunBWantedTrain := C1 - 180
+                else
+                GunBWantedTrain := (C1 - 180) * -1;
+            end
+            else
+            begin
+
+                GunBWantedTrain := radtodeg(arctan2(FCCForeTargetPlot.absolutePosition.Z - maingunBcube.absolutePosition.Z, FCCForeTargetPlot.absolutePosition.X - maingunBcube.absolutePosition.X));
+                GunBWantedTrain := GunBWantedTrain * -1 - 90 - MyShip.TurnAngle;
+                    if GunBWantedTrain < -180 then
+                    GunBWantedTrain := 360 - GunBWantedTrain * -1
+                    else
+                    GunBWantedTrain := GunBWantedTrain;
+
+            end;
+        GunBWantedElevation := 40 * (GunBWantedDistance /40000) + corrElev.Position / 10;
+
+        end;
+     1: begin
+
+           GunBWantedDistance := round(myship.DistanceTo(FCCTopTargetPlot)/4) + round(corrElev.Position / 10 * 1000);
+
+
+            if parCorrCB.Checked = true then
+            begin
+            Al1 := MainGunBPosHoriz.DistanceTo(rf2targ);
+            Bl1 := MainGunBPosHoriz.DistanceTo(TopRFCube);
+            Cl1 := TopRFCube.DistanceTo(rf2targ);
+            C1 := arcCos(((al1*al1)+(bl1*bl1)-(cl1*cl1))/(2*al1*bl1)) * 180 / pi;
+            //B1 := arcCos(((cl1*cl1)+(bl1*bl1)-(al1*al1))/(2*cl1*bl1)) * 180 / pi;
+                if TopRFCube.TurnAngle < 0 then
+                GunBWantedTrain := C1 - 180
+                else
+                GunBWantedTrain := (C1 - 180) * -1;
+            end
+            else
+            begin
+
+                GunBWantedTrain := radtodeg(arctan2(FCCTopTargetPlot.absolutePosition.Z - maingunBcube.absolutePosition.Z, FCCTopTargetPlot.absolutePosition.X - maingunBcube.absolutePosition.X));
+                GunBWantedTrain := GunBWantedTrain * -1 - 90 - MyShip.TurnAngle;
+                    if GunBWantedTrain < -180 then
+                    GunBWantedTrain := 360 - GunBWantedTrain * -1
+                    else
+                    GunBWantedTrain := GunBWantedTrain;
+
+            end;
+        GunBWantedElevation := 40 * (GunBWantedDistance /40000) + corrElev.Position / 10;
+
+        end;
+     2: begin
+
+           GunBWantedDistance := round(myship.DistanceTo(FCCAftTargetPlot)/4) + round(corrElev.Position / 10 * 1000);
+
+            if parCorrCB.Checked = true then
+            begin
+            Al1 := MainGunBPosHoriz.DistanceTo(rf3targ);
+            Bl1 := MainGunBPosHoriz.DistanceTo(AftRFCube);
+            Cl1 := AftRFCube.DistanceTo(rf3targ);
+            C1 := arcCos(((al1*al1)+(bl1*bl1)-(cl1*cl1))/(2*al1*bl1)) * 180 / pi;
+            //B1 := arcCos(((cl1*cl1)+(bl1*bl1)-(al1*al1))/(2*cl1*bl1)) * 180 / pi;
+                if AftRFCube.TurnAngle < 0 then
+                GunBWantedTrain := C1 - 180
+                else
+                GunBWantedTrain := (C1 - 180) * -1;
+            end
+            else
+            begin
+
+                GunBWantedTrain := radtodeg(arctan2(FCCAftTargetPlot.absolutePosition.Z - maingunBcube.absolutePosition.Z, FCCAftTargetPlot.absolutePosition.X - maingunBcube.absolutePosition.X));
+                GunBWantedTrain := GunBWantedTrain * -1 - 90 - MyShip.TurnAngle;
+                    if GunBWantedTrain < -180 then
+                    GunBWantedTrain := 360 - GunBWantedTrain * -1
+                    else
+                    GunBWantedTrain := GunBWantedTrain;
+
+              end;
+
+            GunBWantedElevation := 40 * (GunBWantedDistance /40000) + corrElev.Position / 10;
+
+        end;
+     end;
+  end;
+  if GunCAutoUpCB.Checked = true then
+  begin
+      case GunCRFSlaveRg.ItemIndex of
+     0: begin
+
+             GunCWantedDistance := round(myship.DistanceTo(FCCForeTargetPlot)/4) + round(corrElev.Position / 10 * 1000);
+
+            if parCorrCB.Checked = true then
+            begin
+            Al1 := MainGunCPosHoriz.DistanceTo(rf1targ);
+            Bl1 := MainGunCPosHoriz.DistanceTo(ForeRFCube);
+            Cl1 := ForeRFCube.DistanceTo(rf1targ);
+            C1 := arcCos(((al1*al1)+(bl1*bl1)-(cl1*cl1))/(2*al1*bl1)) * 180 / pi;
+            //B1 := arcCos(((cl1*cl1)+(bl1*bl1)-(al1*al1))/(2*cl1*bl1)) * 180 / pi;
+                if ForeRFCube.TurnAngle < 0 then
+                GunCWantedTrain := C1 - 180
+                else
+                GunCWantedTrain := (C1 - 180) * -1;
+            end
+            else
+            begin
+
+                GunCWantedTrain := radtodeg(arctan2(FCCForeTargetPlot.absolutePosition.Z - maingunCcube.absolutePosition.Z, FCCForeTargetPlot.absolutePosition.X - maingunCcube.absolutePosition.X));
+                GunCWantedTrain := GunCWantedTrain * -1 - 90 - MyShip.TurnAngle;
+                    if GunCWantedTrain < -180 then
+                    GunCWantedTrain := 360 - GunCWantedTrain * -1
+                    else
+                    GunCWantedTrain := GunCWantedTrain;
+
+            end;
+        GunCWantedElevation := 40 * (GunCWantedDistance /40000) + corrElev.Position / 10;
+
+        end;
+     1: begin
+
+            GunCWantedDistance := round(myship.DistanceTo(FCCTopTargetPlot)/4) + round(corrElev.Position / 10 * 1000);
+
+
+            if parCorrCB.Checked = true then
+            begin
+            Al1 := MainGunCPosHoriz.DistanceTo(rf2targ);
+            Bl1 := MainGunCPosHoriz.DistanceTo(TopRFCube);
+            Cl1 := TopRFCube.DistanceTo(rf2targ);
+            C1 := arcCos(((al1*al1)+(bl1*bl1)-(cl1*cl1))/(2*al1*bl1)) * 180 / pi;
+            //B1 := arcCos(((cl1*cl1)+(bl1*bl1)-(al1*al1))/(2*cl1*bl1)) * 180 / pi;
+                if TopRFCube.TurnAngle < 0 then
+                GunCWantedTrain := C1 - 180
+                else
+                GunCWantedTrain := (C1 - 180) * -1;
+            end
+            else
+            begin
+
+                GunCWantedTrain := radtodeg(arctan2(FCCTopTargetPlot.absolutePosition.Z - maingunCcube.absolutePosition.Z, FCCTopTargetPlot.absolutePosition.X - maingunCcube.absolutePosition.X));
+                GunCWantedTrain := GunCWantedTrain * -1 - 90 - MyShip.TurnAngle;
+                    if GunCWantedTrain < -180 then
+                    GunCWantedTrain := 360 - GunCWantedTrain * -1
+                    else
+                    GunCWantedTrain := GunCWantedTrain;
+
+            end;
+        GunCWantedElevation := 40 * (GunCWantedDistance /40000) + corrElev.Position / 10;
+
+        end;
+     2: begin
+
+            GunCWantedDistance := round(myship.DistanceTo(FCCAftTargetPlot)/4) + round(corrElev.Position / 10 * 1000);
+
+
+            if parCorrCB.Checked = true then
+            begin
+            Al1 := MainGunCPosHoriz.DistanceTo(rf3targ);
+            Bl1 := MainGunCPosHoriz.DistanceTo(AftRFCube);
+            Cl1 := AftRFCube.DistanceTo(rf3targ);
+            C1 := arcCos(((al1*al1)+(bl1*bl1)-(cl1*cl1))/(2*al1*bl1)) * 180 / pi;
+            //B1 := arcCos(((cl1*cl1)+(bl1*bl1)-(al1*al1))/(2*cl1*bl1)) * 180 / pi;
+                if AftRFCube.TurnAngle < 0 then
+                GunCWantedTrain := C1 - 180
+                else
+                GunCWantedTrain := (C1 - 180) * -1;
+            end
+            else
+            begin
+
+                GunCWantedTrain := radtodeg(arctan2(FCCAftTargetPlot.absolutePosition.Z - maingunCcube.absolutePosition.Z, FCCAftTargetPlot.absolutePosition.X - maingunCcube.absolutePosition.X));
+                GunCWantedTrain := GunCWantedTrain * -1 - 90 - MyShip.TurnAngle;
+                    if GunCWantedTrain < -180 then
+                    GunCWantedTrain := 360 - GunCWantedTrain * -1
+                    else
+                    GunCWantedTrain := GunCWantedTrain;
+
+            end;
+        GunCWantedElevation := 40 * (GunCWantedDistance /40000) + corrElev.Position / 10;
+
+        end;
+     end;
+  end;
+
+  //FCC OBJECTS TEST
+
+  FCCForeTargetPos.AbsolutePosition := rf1targ.AbsolutePosition;
+  //FCCForeTargetPos.AbsolutePosition := MyShip.AbsolutePosition;
+  FCCForeTargetPos.Position.Y := 40;
+  //tempSingX := cone1.RollAngle - 180 mod 360 + fireDirHudNeedle1.Rotation - 180;
+  //FCCForeTargetPos.RollAngle := (cone1.RollAngle - 180 mod 360) + ForeRFCube.TurnAngle - 180;//fireDirHudFCCtargetRing.Rotation - 180;
+  //FCCForeTargetPos.lift(myship.DistanceTo(rf1targ));
+  FCCForeTargetPos.rollAngle := fireDirHudFCCForetargetHeadVar - fireDirHUDFCCTargCompass.rotation - 180;  //fireDirHudFCCtargetHead.Rotation - 180;
+
+  FCCForeTargetPlot.Position := FCCForeTargetPos.Position;
+  FCCForeTargetPlot.TurnAngle := FCCForeTargetPos.rollAngle * -1;
+  FCCForeTargetPlot.Move(((myship.DistanceTo(rf1targ) / 4) * 0.001) * (((FCCForeTargetSpeedVar / 4) * 0.75) * 4)); //0.75 = nonsense nummer
+  //FCCForeTargetPlot.Move(500);
+
+  FCCTopTargetPos.AbsolutePosition := rf2targ.AbsolutePosition;
+  //FCCTopTargetPos.AbsolutePosition := MyShip.AbsolutePosition;
+  FCCTopTargetPos.Position.Y := 40;
+  //tempSingX := cone1.RollAngle - 180 mod 360 + fireDirHudNeedle1.Rotation - 180;
+  //FCCTopTargetPos.RollAngle := (cone1.RollAngle - 180 mod 360) + TopRFCube.TurnAngle - 180;//fireDirHudFCCtargetRing.Rotation - 180;
+  //FCCTopTargetPos.lift(myship.DistanceTo(rf2targ));
+  FCCTopTargetPos.rollAngle := fireDirHudFCCToptargetHeadVar - fireDirHUDFCCTargCompass.rotation - 180;  //fireDirHudFCCtargetHead.Rotation - 180;
+
+  FCCTopTargetPlot.Position := FCCTopTargetPos.Position;
+  FCCTopTargetPlot.TurnAngle := FCCTopTargetPos.rollAngle * -1;
+  FCCTopTargetPlot.Move(((myship.DistanceTo(rf2targ) / 4) * 0.001) * (((FCCTopTargetSpeedVar / 4) * 0.75) * 4)); //0.75 = nonsense nummer
+
+  FCCAftTargetPos.AbsolutePosition := rf3targ.AbsolutePosition;
+  //FCCAftTargetPos.AbsolutePosition := MyShip.AbsolutePosition;
+  FCCAftTargetPos.Position.Y := 40;
+  //tempSingX := cone1.RollAngle - 180 mod 360 + fireDirHudNeedle1.Rotation - 180;
+  //FCCAftTargetPos.RollAngle := (cone1.RollAngle - 180 mod 360) + AftRFCube.TurnAngle - 180;//fireDirHudFCCtargetRing.Rotation - 180;
+  //FCCAftTargetPos.lift(myship.DistanceTo(rf3targ));
+  FCCAftTargetPos.rollAngle := fireDirHudFCCAfttargetHeadVar - fireDirHUDFCCTargCompass.rotation - 180;  //fireDirHudFCCtargetHead.Rotation - 180;
+
+  FCCAftTargetPlot.Position := FCCAftTargetPos.Position;
+  FCCAftTargetPlot.TurnAngle := FCCAftTargetPos.rollAngle * -1;
+  FCCAftTargetPlot.Move(((myship.DistanceTo(rf3targ) / 4) * 0.001) * (((FCCAftTargetSpeedVar / 4) * 0.75) * 4)); //0.75 = nonsense nummer
+
+  //FCC RADAR
+  if fireDirHUDtex1.Visible = true then
+  begin
+          if fccRadarOn = true then
+          begin
+          fireDirHudRadarScreen.Visible:=true;
+
+          case usingFireDirNr of
+          1: tempSingY := ForeRFCube.TurnAngle * -1;
+          2: tempSingY := TopRFCube.TurnAngle * -1;
+          3: tempSingY := aftRFCube.TurnAngle * -1;
+          end;
+                if tempSingY < 0 then
+                tempSingY := tempSingY + 360;
+             //tempSingY := round(TempSingY * 10)/10;
+
+             RadarTarget1Dist2 := strToInt(fireDirHUDrangeText1.text) * 4;
+             RadarTarget1Dir2 := 0;
+                if v1AICounter > 0 then
+                begin
+
+                    for tempIntX := 1 to v1AICounter do
+                    begin
+                    Selv1AI := glScene1.FindSceneObject(v1AIShips[tempIntX].name);
+                            if selv1AI.Position.y > - 20 then
+                            begin
+                            RadarTarget1Angle := -90 + RadToDeg(arctan2(Selv1AI.Position.Z - MyShip.Position.Z, Selv1AI.Position.X - MyShip.Position.X));
+
+                              if RadarTarget1Angle < 0 then
+                              RadarTarget1Angle := RadarTarget1Angle + 360;
+
+                            tempSingZ := (RadarTarget1Angle - strToInt(CompassLabel.Caption));
+
+                              If tempSingZ > 360 then
+                              begin
+                              tempSingZ := 360 - tempSingZ;
+                              end;
+
+                              If tempSingZ < -0 then
+                              begin
+                              tempSingZ := tempSingZ + 360;
+                              end;
+
+                              if (tempSingZ - tempSingY < 0.5) and (tempSingZ - tempSingY > -0.5) then
+                              begin
+                              radarTarget1Dist := round(MyShip.DistanceTo(Selv1AI));
+
+                              //tempIntA := round(8000 * ((fccRadarknob1.Rotation * -1) / 210));
+
+                                if (radarTarget1Dist < RadarTarget1Dist2 + 8000) and (radarTarget1Dist > RadarTarget1Dist2 - 8000) then
+                                begin
+
+                                FCCRadarTargetFound := true;
+                                FCCRadarTargetFoundDist := round(radarTarget1Dist - radarTarget1Dist2);
+                                end;
+                              end;
+
+                        end;
+                    end;
+                end;
+          end
+          else
+          begin
+          fireDirHudRadarScreen.Visible:=false;
+          end;
+     if GetAsyncKeyState(VK_LBUTTON) <> 0 then
+     begin
+          if (isHit(fccRadarSwitchON, mouse.CursorPos.X, mouse.CursorPos.y) = true) and (fdHudBtnCoolTimer <= 0) then
+          begin
+          fccRadarSwitchON.Rotation:=fccRadarSwitchON.Rotation + 180;
+          fccRadarOn := not fccRadarOn;
+          fdHudBtnCoolTimer := 1;
+          end;
+
+         if (isHit(fccRadarknob1, mouse.CursorPos.X, mouse.CursorPos.y) = true) then
+          begin
+
+              if (mouseMoveXPlus > 0) and (fccRadarknob1.Rotation < 0) then
+              begin
+              fccRadarknob1.Rotation := fccRadarknob1.Rotation + 5;
+
+              end;
+
+              if (mouseMoveXMinus > 0) and (fccRadarknob1.Rotation > -210) then
+              begin
+              fccRadarknob1.Rotation := fccRadarknob1.Rotation - 5;
+
+              end;
+
+          mouseMoveXPlus := 0;
+          mouseMoveXMinus := 0;
+          SetCursorPos(round(fccRadarknob1.Position.X), round(fccRadarknob1.Position.Y));
+          mouseMoveXOldPos := mouse.CursorPos.X;
+          end;
+      end;
+  end;
+  
