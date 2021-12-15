@@ -1,3 +1,46 @@
+//UPDATE TERRAIN TILES
+//Från gameloopen
+  loadNewTiles := false;
+
+  if TRTileCube.Position.X >= 128000 then
+  begin
+  TRTileCube.Position.X := TRTileCube.Position.X - 256000;
+  TilesArray[0] := TilesArray[0] + 1;
+  loadNewTiles := true;
+  end;
+
+  if TRTileCube.Position.X <= -128000 then
+  begin
+  TRTileCube.Position.X := TRTileCube.Position.X + 256000;
+  TilesArray[0] := TilesArray[0] - 1;
+  loadNewTiles := true;
+  end;
+
+  if TRTileCube.Position.Z >= 128000 then
+  begin
+  TRTileCube.Position.Z := TRTileCube.Position.Z - 256000;
+  TilesArray[1] := TilesArray[1] + 1;
+  loadNewTiles := true;
+  end;
+
+  if TRTileCube.Position.Z <= -128000 then
+  begin
+  TRTileCube.Position.Z := TRTileCube.Position.Z + 256000;
+  TilesArray[1] := TilesArray[1] - 1;
+  loadNewTiles := true;
+  end;
+
+  if loadNewTiles = true then
+  begin
+  TRTileC.HeightDataSource := nil;
+  TRtileCLoader.MarkDirty;
+  CombineTiles;
+  TRTileC.HeightDataSource := TRtileCLoader;
+  end; 
+
+//Gameloopen ruller vidare...
+
+//Funktion som kombinerar valda terrain-tiles till en bild som laddas in i terränggeneratorn.
 procedure TForm1.CombineTiles;
 var
 tempPNG: TPortableNetworkGraphic;
